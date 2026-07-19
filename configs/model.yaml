@@ -1,0 +1,89 @@
+
+model:
+  predict_sidechain: ${complex_dataset.predict_sidechain}
+  no_cipa: False
+  node_embed_size: 256 # bb node
+  edge_embed_size: 128 # bb edge
+  lig_node_embed_size: 64 # Ligand Graph Node
+  lig_edge_embed_size: 64 # Ligand Graph Edge
+  bblig_edge_embed_size: 64 # bb-ligand edge
+  symmetric: False
+  transformer_dropout: 0.2
+  aatype_pred_num_tokens: 21
+  full_bb_lig_edge: True
+  pre_ln: True
+  new_version: True
+  node_features:
+    # 21: 20 amino acids + <mask> (also for UNK)
+    aatype_embed_num_tokens: 21
+    c_s: ${model.node_embed_size}
+    c_pos_emb: 64
+    c_timestep_emb: 64
+    max_num_res: 2000
+    timestep_int: 1000
+    embed_chain: ${complex_dataset.multichain}
+    embed_aatype: True
+    use_mlp: False
+    aatype_pred_num_tokens: ${model.aatype_pred_num_tokens}
+  edge_features:
+    new_version:  ${model.new_version}
+    single_bias_transition_n: 2
+    c_s: ${model.node_embed_size}
+    c_p: ${model.edge_embed_size}
+    relpos_k: 64
+    feat_dim: 64
+    num_bins: 22
+    self_condition: True
+    embed_chain: ${complex_dataset.multichain}
+    embed_diffuse_mask: True
+  cross_edge_features:
+    c_s: ${model.node_embed_size}
+    c_p: ${model.bblig_edge_embed_size}
+    c_l: ${model.lig_node_embed_size}
+    pro_feat_dim: 64
+    lig_feat_dim: 64
+    ligand_rbf_d_min: 0.05
+    ligand_rbf_d_max: 10
+    num_rbf_size: 16
+  cross_ipa:
+    c_s: ${model.node_embed_size}
+    c_z: ${model.bblig_edge_embed_size}
+    c_l: ${model.lig_node_embed_size}
+    c_hidden: 16
+    no_heads: 8
+    no_qk_points: 8
+    no_v_points: 12
+    topk_percent: 0.3
+  mol_embedder:
+    new_version:  ${model.new_version}
+    aatype_embed_num_tokens: ${model.node_features.aatype_embed_num_tokens}
+    num_atom_type: 95 #used for nn.embedding, fixed.
+    node_embed_size: ${model.lig_node_embed_size}
+    edge_embed_size: ${model.lig_edge_embed_size}
+    ligand_rbf_d_min: 0.05
+    ligand_rbf_d_max: 10
+    num_rbf_size: 16
+    distance_threshold: 5
+    charge:
+      embed_charge: ${complex_dataset.use_charge}
+      charge_rbf_min: ${complex_dataset.charge_min}
+      charge_rbf_max: ${complex_dataset.charge_max}
+      num_rbf_size: 16
+  ipa:
+    c_s: ${model.node_embed_size}
+    c_z: ${model.edge_embed_size}
+    c_hidden: 16
+    no_heads: 8
+    no_qk_points: 8
+    no_v_points: 12
+    seq_tfmr_num_heads: 4
+    seq_tfmr_num_layers: 4
+    num_blocks: 4
+    dropout: 0.2
+  sidechain_module:
+    c_s:  ${model.node_embed_size}
+    c_resnet: 128
+    no_resnet_blocks: 4
+    no_angles: 4
+    epsilon: 1e-5
+    mode: torsion

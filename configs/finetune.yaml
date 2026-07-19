@@ -1,0 +1,53 @@
+data:
+  # Available datasets: propedia
+  dataset: sabdab_ab_molecule
+
+  sampler:
+    max_batch_size: 10
+    max_num_res_squared: 450_000
+    max_batch_repeats: 3 #minimum: 1
+
+experiment:
+  num_devices: 1
+  wandb:
+    project: se3-fm-abfinetune
+  optimizer:
+    lr: 0.00001
+  trainer:
+    check_val_every_n_epoch: 3
+    accumulate_grad_batches: 1
+    max_epochs: 1438
+  checkpointer:
+    save_top_k: 3
+    every_n_epochs: 3
+    monitor: valid/rmsd
+  training:
+    aux_loss_weight: 0.4
+
+complex_dataset:
+  csv_path: ../dataset/processed_finetune/combined_ab_metadata.csv
+  fixed_test: /home/kechen/antibody_design/testset/0217/testset.csv
+  cluster_path: ../dataset/sabdab/antibody_ag_CDRH3_clu_id0.5_c0.8.clusters
+  use_protein_ag: False
+  task: inpainting
+  min_cluster: 10
+
+  # Eval parameters
+  pep_val_num: 25
+  sugar_val_num: 5
+  hapten_val_num: 10
+  protein_val_num: 60
+  
+  filter:
+    resolution_filter: 3.5
+    max_num_res: 1000
+    min_num_res: 50
+    min_peptide_len: 1
+    max_peptide_len: 1022
+    max_atom_num: 300
+    min_atom_num: 5
+    pocket_size_mode: absolute
+    min_pocket_size: 12
+    retain_antibodies: True
+    retain_ppdbench: True
+

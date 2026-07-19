@@ -1,0 +1,245 @@
+data:
+  dataset: sabdab_ab_molecule
+  loader:
+    num_workers: 4
+    prefetch_factor: 5
+  sampler:
+    max_batch_size: 10
+    max_num_res_squared: 450000
+    max_batch_repeats: 3
+    ligand_only: ${complex_dataset.ligand_only}
+    monomer_ratio: ${complex_dataset.monomer_ratio}
+    small_molecule_ratio: 1.0
+    crop: true
+    dynamic_mask: true
+    crop_threshold: 350
+    predict_sidechain: ${complex_dataset.predict_sidechain}
+    swap_prob: 0.4
+    sidechain_prob: 0.1
+    max_seg_len: 0
+    no_cipa: ${model.no_cipa}
+    new_version: ${model.new_version}
+interpolant:
+  min_t: 0.01
+  provide_kappa: false
+  hierarchical_t: false
+  codesign_separate_t: true
+  codesign_forward_fold_prop: 0.0
+  codesign_inverse_fold_prop: 0.0
+  rots:
+    corrupt: true
+    train_schedule: linear
+    sample_schedule: exp
+    exp_rate: 10
+  trans:
+    corrupt: true
+    batch_ot: true
+    train_schedule: linear
+    sample_schedule: linear
+    sample_temp: 1.0
+    vpsde_bmin: 0.1
+    vpsde_bmax: 20.0
+    potential: null
+    potential_t_scaling: false
+    rog:
+      weight: 10.0
+      cutoff: 5.0
+  aatypes:
+    corrupt: true
+    schedule: linear
+    schedule_exp_rate: 10
+    temp: 1.0
+    noise: 0.0
+    do_purity: false
+    train_extra_mask: 0.0
+    interpolant_type: masking
+  sampling:
+    num_timesteps: 50
+    do_sde: false
+  self_condition: ${model.edge_features.self_condition}
+experiment:
+  debug: false
+  finetune: true
+  seed: 123
+  num_devices: 1
+  identifier: ligand_finetune
+  warm_start: /home/kechen/peppocketgen/experiments/ckpt/se3-fm-new/2026-02-03_01-42_full_edge_bf16_preln_ligand/last.ckpt
+  finetune_start: null
+  warm_start_cfg_override: true
+  raw_state_dict_reload: null
+  training:
+    mask_plddt: false
+    bb_atom_scale: 0.1
+    trans_scale: 0.1
+    aatypes_loss_weight: 1
+    aatypes_label_smoothing: 0.0
+    aatypes_loss_mean_or_sum: mean
+    aatypes_loss_use_likelihood_weighting: false
+    translation_loss_weight: 2.0
+    t_normalize_clip: 0.9
+    rotation_loss_weights: 1.0
+    aux_loss_weight: 0.4
+    aux_loss_use_bb_loss: true
+    aux_loss_use_pair_loss: true
+    aux_loss_t_pass: 0.5
+    side_chain_fape_weight: 1
+    torsion_loss_weight: 1
+  violation:
+    between_residue_loss_weight: 0.1
+    within_residue_loss_weight: 0
+    pocket_peptide_loss_weight: 100
+    clash_overlap_tolerance: 1.5
+    violation_tolerance_factor: 12.0
+    average_clashes: false
+  wandb:
+    name: ${now:%Y-%m-%d}_${now:%H-%M}_${experiment.identifier}
+    project: se3-fm-abfinetune
+  optimizer:
+    lr: 1.0e-05
+  trainer:
+    overfit_batches: 0
+    min_epochs: 1
+    max_epochs: 2000
+    accelerator: gpu
+    log_every_n_steps: 2
+    deterministic: false
+    strategy: ddp_find_unused_parameters_true
+    check_val_every_n_epoch: 3
+    accumulate_grad_batches: 1
+  checkpointer:
+    dirpath: ckpt/${experiment.wandb.project}/${experiment.wandb.name}
+    save_last: true
+    save_top_k: 3
+    every_n_epochs: 3
+    monitor: valid/rmsd
+    mode: min
+  inference_dir: null
+complex_dataset:
+  seed: 123
+  csv_path: ../dataset/processed_finetune/combined_ab_metadata.csv
+  cluster_path: ../dataset/sabdab/antibody_ag_CDRH3_clu_id0.5_c0.8.clusters
+  ppdbench_path: ../dataset/pdb/PPDBench/complexes113
+  antibody_list_path: ../dataset/antibody_list.pkl
+  charge_inter_path: /home/kechen/peppocketgen/dataset/processed_training/merged_propedia_5.5/charge_eem/inter_charge.pkl
+  task: inpainting
+  cluster_file_multichain: false
+  min_cluster: 10
+  cache_num_res: 0
+  predict_csv_path: ../dataset/processed_PPDBench_3.5/metadata.csv
+  predict_sidechain: false
+  multichain: true
+  ligand_only: true
+  peptide_only: false
+  monomer_ratio: 0.3
+  use_charge: false
+  charge_min: -1.5
+  charge_max: 1.5
+  samples_per_eval_length: 5
+  num_eval_lengths: 10
+  max_eval_length: 512
+  filter:
+    max_num_res: 1000
+    min_num_res: 50
+    min_peptide_len: 1
+    max_peptide_len: 1022
+    max_atom_num: 300
+    min_atom_num: 5
+    min_pocket_size: 12
+    retain_antibodies: true
+    retain_ppdbench: true
+    resolution_filter: 3.5
+    pocket_size_mode: absolute
+  charge_path: /home/kechen/peppocketgen/dataset/processed_training/merged_propedia_5.5/inter_charge
+  fixed_test: /home/kechen/antibody_design/testset/0217/testset.csv
+  use_protein_ag: false
+  pep_val_num: 25
+  sugar_val_num: 5
+  hapten_val_num: 10
+  protein_val_num: 60
+model:
+  predict_sidechain: ${complex_dataset.predict_sidechain}
+  no_cipa: false
+  node_embed_size: 256
+  edge_embed_size: 128
+  lig_node_embed_size: 64
+  lig_edge_embed_size: 64
+  bblig_edge_embed_size: 64
+  symmetric: false
+  transformer_dropout: 0.2
+  aatype_pred_num_tokens: 21
+  full_bb_lig_edge: true
+  pre_ln: true
+  new_version: true
+  node_features:
+    aatype_embed_num_tokens: 21
+    c_s: ${model.node_embed_size}
+    c_pos_emb: 64
+    c_timestep_emb: 64
+    max_num_res: 2000
+    timestep_int: 1000
+    embed_chain: ${complex_dataset.multichain}
+    embed_aatype: true
+    use_mlp: false
+    aatype_pred_num_tokens: ${model.aatype_pred_num_tokens}
+  edge_features:
+    new_version: ${model.new_version}
+    single_bias_transition_n: 2
+    c_s: ${model.node_embed_size}
+    c_p: ${model.edge_embed_size}
+    relpos_k: 64
+    feat_dim: 64
+    num_bins: 22
+    self_condition: true
+    embed_chain: ${complex_dataset.multichain}
+    embed_diffuse_mask: true
+  cross_edge_features:
+    c_s: ${model.node_embed_size}
+    c_p: ${model.bblig_edge_embed_size}
+    c_l: ${model.lig_node_embed_size}
+    pro_feat_dim: 64
+    lig_feat_dim: 64
+    ligand_rbf_d_min: 0.05
+    ligand_rbf_d_max: 10
+    num_rbf_size: 16
+  cross_ipa:
+    c_s: ${model.node_embed_size}
+    c_z: ${model.bblig_edge_embed_size}
+    c_l: ${model.lig_node_embed_size}
+    c_hidden: 16
+    no_heads: 8
+    no_qk_points: 8
+    no_v_points: 12
+    topk_percent: 0.3
+  mol_embedder:
+    new_version: ${model.new_version}
+    aatype_embed_num_tokens: ${model.node_features.aatype_embed_num_tokens}
+    num_atom_type: 95
+    node_embed_size: ${model.lig_node_embed_size}
+    edge_embed_size: ${model.lig_edge_embed_size}
+    ligand_rbf_d_min: 0.05
+    ligand_rbf_d_max: 10
+    num_rbf_size: 16
+    distance_threshold: 5
+    charge:
+      embed_charge: ${complex_dataset.use_charge}
+      charge_rbf_min: ${complex_dataset.charge_min}
+      charge_rbf_max: ${complex_dataset.charge_max}
+      num_rbf_size: 16
+  ipa:
+    c_s: ${model.node_embed_size}
+    c_z: ${model.edge_embed_size}
+    c_hidden: 16
+    no_heads: 8
+    no_qk_points: 8
+    no_v_points: 12
+    seq_tfmr_num_heads: 4
+    seq_tfmr_num_layers: 4
+    num_blocks: 4
+    dropout: 0.2
+  sidechain_module:
+    c_s: ${model.node_embed_size}
+    c_resnet: 128
+    no_resnet_blocks: 4
+    no_angles: 4
+    epsilon: 1.0e-05
+    mode: torsion

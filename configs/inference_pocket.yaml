@@ -1,0 +1,65 @@
+defaults:
+  - _self_
+
+#不要引用base，不然base.yaml中所有配置会被加载
+
+inference:
+  predict_dir: ./inference_outputs/
+  inference_subdir: run_${now:%Y-%m-%d}_${now:%H-%M-%S}
+  task: pocket
+  seed: 123
+  use_gpu: True
+  num_gpus: 1
+  #predict_csv_path: ../dataset/design_new/muc/scfv_A.27-38,56-58,95-102,164-171,189-196,235-250/metadata.csv
+  predict_csv_path: ../dataset/processed_PPDBench_3.5/metadata.csv
+  #predict_csv_path: /home/kechen/peppocketgen/dataset/processed_training/peuso_test.csv
+  #predict_csv_path: /home/kechen/peppocketgen/dataset/processed_training/dataset_90.csv
+  #ckpt_path: /home/kechen/peppocketgen/experiments/ckpt/se3-fm/2025-12-02_18-17_aux_loss/epoch=152-step=577881.ckpt
+  #ckpt_path: /home/kechen/peppocketgen/experiments/ckpt/se3-fm-abfinetune/2025-11-22_01-32_aux_loss/epoch=1299-step=262653.ckpt
+  #ckpt_path: /home/kechen/peppocketgen/experiments/ckpt/se3-fm/2025-12-07_03-34_None/epoch=374-step=1416375.ckpt
+  ckpt_path: /home/kechen/peppocketgen/experiments/ckpt/se3-fm-new/2026-02-10_10-49_full_edge_bf16_preln_ligand/last.ckpt
+  sample_num: 8
+  write_traj: True
+
+  model:
+    new_version: True
+
+  interpolant:
+    min_t: 1e-2
+    provide_kappa: False
+    codesign_separate_t: False
+
+    rots:
+      corrupt: True
+      sample_schedule: exp
+      exp_rate: 10
+
+    trans:
+      corrupt: True
+      pre_align: True
+      train_schedule: linear
+      sample_schedule: linear
+      sample_temp: 1.0
+      potential: null
+      potential_t_scaling: False
+      rog:
+        weight: 20.0
+        cutoff: 5.0
+    aatypes:
+      corrupt: True
+      schedule: linear
+      schedule_exp_rate: -3
+      temp: 1.0 #温度越高多样性越大
+      noise: 0.0 #噪声越高多样性越大
+      do_purity: True
+       #是：确定性更强 否：允许更多随机性和探索
+      interpolant_type: masking
+    sampling:
+      num_timesteps: 50
+      do_sde: False
+
+    self_condition: True
+  
+  samples:
+
+

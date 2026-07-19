@@ -1,0 +1,138 @@
+defaults:
+ - _self_
+ - datasets
+ - model
+
+data:
+  # Available datasets: propedia
+  dataset: propedia
+
+  loader:
+    num_workers: 4
+    prefetch_factor: 5
+
+  sampler:
+    # Setting for 24B GPUs
+    # max_batch_size: 40
+    # max_num_res_squared: 500_000
+    # max_batch_repeats: 5
+
+    # Setting for 80GB GPUs
+    max_batch_size: 45
+    max_num_res_squared: 1_200_000
+    max_batch_repeats: 5 #minimum: 1
+    ligand_only: ${complex_dataset.ligand_only} # 训练时不使用任何不含ligand的结构
+    monomer_ratio: ${complex_dataset.monomer_ratio}
+    small_molecule_ratio: 1.0
+    crop: True
+    dynamic_mask: True
+    crop_threshold: 350
+    predict_sidechain: ${complex_dataset.predict_sidechain}
+    swap_prob: 0.4
+    sidechain_prob: 0.10
+    max_seg_len: 0
+    no_cipa: ${model.no_cipa}
+    new_version: ${model.new_version}
+
+interpolant:
+  min_t: 1e-2 #0.01
+  provide_kappa: False
+  hierarchical_t: False
+  codesign_separate_t: True
+  codesign_forward_fold_prop: 0.0
+  codesign_inverse_fold_prop: 0.0
+
+  rots:
+    corrupt: True
+    train_schedule: linear
+    sample_schedule: exp
+    exp_rate: 10
+
+  trans:
+    corrupt: True
+    batch_ot: True
+    train_schedule: linear
+    sample_schedule: linear
+    sample_temp: 1.0
+    vpsde_bmin: 0.1
+    vpsde_bmax: 20.0
+    potential: null
+    potential_t_scaling: False
+    rog:
+      weight: 10.0
+      cutoff: 5.0
+
+  aatypes:
+    corrupt: True
+    schedule: linear
+    schedule_exp_rate: 10
+    temp: 1.0
+    noise: 0.0
+    do_purity: False
+    train_extra_mask: 0.0
+    interpolant_type: masking
+
+  sampling:
+    num_timesteps: 50
+    do_sde: False
+  self_condition: ${model.edge_features.self_condition}
+
+
+experiment:
+  debug: False
+  finetune: False
+  seed: 123
+  num_devices: 1
+  identifier:
+  warm_start:
+  finetune_start: 
+  warm_start_cfg_override: True
+  raw_state_dict_reload: null
+  training:
+    mask_plddt: False
+    bb_atom_scale: 0.1
+    trans_scale: 0.1
+    aatypes_loss_weight: 1
+    aatypes_label_smoothing: 0.0 
+    aatypes_loss_mean_or_sum: mean
+    aatypes_loss_use_likelihood_weighting: False
+    translation_loss_weight: 2.0
+    t_normalize_clip: 0.9
+    rotation_loss_weights: 1.0
+    aux_loss_weight: 0.3
+    aux_loss_use_bb_loss: True
+    aux_loss_use_pair_loss: True
+    aux_loss_t_pass: 0.5
+    side_chain_fape_weight: 1
+    torsion_loss_weight: 1
+  violation:
+    between_residue_loss_weight: 0.1
+    within_residue_loss_weight: 0
+    pocket_peptide_loss_weight: 100
+    clash_overlap_tolerance: 1.5
+    violation_tolerance_factor: 12.0
+    average_clashes: False
+  wandb:
+    name: ${now:%Y-%m-%d}_${now:%H-%M}_${experiment.identifier}
+    project: se3-fm-new
+  optimizer:
+    lr: 0.0001
+  trainer:
+    overfit_batches: 0
+    min_epochs: 1 # prevents early stopping
+    max_epochs: 1500
+    accelerator: gpu
+    log_every_n_steps: 2
+    deterministic: False
+    strategy: ddp_find_unused_parameters_true
+    check_val_every_n_epoch: 3
+    accumulate_grad_batches: 1
+  checkpointer:
+    dirpath: ckpt/${experiment.wandb.project}/${experiment.wandb.name}
+    save_last: True
+    save_top_k: 3
+    every_n_epochs: 3
+    monitor: valid/ca_ca_deviation
+    mode: min
+  # Keep this null. Will be populated at runtime.
+  inference_dir: null

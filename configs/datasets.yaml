@@ -1,0 +1,33 @@
+complex_dataset:
+  seed: 123
+  csv_path: ../dataset/processed_training/training_metadata.csv
+  cluster_path: ../dataset/propedia_pep_sequences_clu_id0.5_c0.8.clusters
+  ppdbench_path: ../dataset/pdb/PPDBench/complexes113
+  antibody_list_path: ../dataset/antibody_list.pkl
+  task: inpainting
+  cluster_file_multichain: False
+  min_cluster: 10
+  cache_num_res: 0
+  #predict_csv_path: ../dataset/processed_PPDBench_3.5/metadata.csv
+  predict_sidechain: False
+  multichain: True
+  ligand_only: True
+  peptide_only: True
+  monomer_ratio: 0.3
+  # Eval parameters
+  samples_per_eval_length: 5
+  num_eval_lengths: 10
+  max_eval_length: 512
+  
+  filter:
+    max_num_res: 1000
+    min_num_res: 50
+    min_peptide_len: 1
+    max_peptide_len: 30
+    max_atom_num: 300
+    min_atom_num: 5
+    min_pocket_size: 8
+    retain_antibodies: False
+    retain_ppdbench: False
+    
+
