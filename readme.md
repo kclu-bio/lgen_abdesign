@@ -5,8 +5,7 @@
   <img src="combined_vertical_highres_2x.gif" alt="PepPocketGen overview animation">
 </p>
 
-PepPocketGen generates antibody CDR structures and sequences for peptide,
-protein, hapten, and saccharide antigens. This repository contains data preprocessing,
+LGenLig generates antibody CDR structures and sequences for peptide,hapten, and saccharide antigens. This repository contains data preprocessing,
 pretraining, antibody fine-tuning, inference, and structure-based evaluation pipelines.
 
 All commands below assume that the current directory is the repository root unless a
@@ -15,7 +14,7 @@ different directory is shown explicitly.
 ## Environment Setup
 
 ```bash
-conda env create -f conda_env_yamls/ppg.yml
+conda env create -f ppg.yml
 conda activate ppg
 ```
 
@@ -29,7 +28,7 @@ python -m pip install -e .
 
 ## Checkpoints and Data
 
-The examples below use the following downloadable artifacts fron zenodo:
+The following is a description of some files in [zenodo](https://zenodo.org/records/20991330):
 
 - `LGenLig.ckpt`: Checkpoint for main model.
 - `finetune_ckpt.tar.gz`: Checkpoint and configureation file for all finetuned model.
@@ -260,11 +259,18 @@ python data/pocket_parsing.py \
   -i dataset/sabdab/Ab-hapten/split_imgt_clean_fixed_fv \
   -o dataset/processed_finetune/Ab_hapten_fv \
   --mode imgt_filename
+
+# If you want to add antibody-protein data
+  python data/pocket_parsing.py \
+  -i dataset/sabdab/Ab-protein/split_imgt_clean_fixed_fv \
+  -o dataset/processed_finetune/Ab_protein_fv \
+  --mode imgt_filename \
+  --ligand_crop_threshold 8.0
+
 ```
 
 This mode expects filenames whose second underscore-delimited field identifies the
-antigen chain or chains. Concatenate the generated metadata files into one CSV without
-changing the `processed_path` values. Configure `configs/finetune.yaml`:
+antigen chain or chains. **Concatenate all the generated metadata.csv files into a single CSV file**. Then Configure `configs/finetune.yaml`:
 
 ```yaml
 complex_dataset:
@@ -295,24 +301,7 @@ When `experiment.finetune=true`, `train_pockets.py` merges
 `configs/finetune.yaml` into the checkpoint configuration. Use `warm_start` instead of
 `finetune_start` only when resuming an already-started fine-tuning run.
 
-## Evaluation
-
-### Sequence recovery and RMSD
-
-The benchmark script supports PepPocketGen (`ppg`) and several baselines:
-
-```bash
-python analysis/aar_rmsd_benchmark.py \
-  --model ppg \
-  --input_dir path/to/inference/run_directory
-```
-
-The current script is not fully portable: `gt_path` in
-`analysis/aar_rmsd_benchmark.py` contains absolute ground-truth directories. Update
-those paths before running it on another machine. `analysis/benchmark.sh` is an
-experiment-specific example and also contains absolute paths.
-
-### Relaxation and energetic scoring
+## Relaxation and energetic scoring
 
 Use a separate bioinformatics environment for PyRosetta, OpenMM, Open Babel, PDB2PQR,
 AutoDockTools, Meeko, and Vina. A starting environment is supplied in

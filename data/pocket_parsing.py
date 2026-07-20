@@ -31,6 +31,7 @@ import io
 # python pocket_parsing.py -i ../dataset/sabdab/Ab-pep/split_imgt_clean_fixed_fv -o ../dataset/processed_finetune/Ab_pep_fv --mode imgt_filename 
 # python pocket_parsing.py -i ../dataset/sabdab/Ab-sugar/split_imgt_clean_fixed_fv -o ../dataset/processed_finetune/Ab_sugar_fv --mode imgt_filename 
 # python pocket_parsing.py -i ../dataset/sabdab/Ab-hapten/split_imgt_clean_fixed_fv -o ../dataset/processed_finetune/Ab_hapten_fv --mode imgt_filename 
+# python pocket_parsing.py -i ../dataset/sabdab/Ab-protein/split_imgt_clean_fixed_fv -o ../dataset/processed_finetune/Ab_protein_fv --mode imgt_filename --ligand_crop_threshold 8.0
 
 # Abeta
 # python pocket_parsing.py -i ../dataset/design_new/abeta/docked_complex -o ../dataset/design_new/abeta/processed_docked_complex --mode imgt
@@ -53,8 +54,6 @@ import io
 # testset H3
 # python pocket_parsing.py -i /home/kechen/antibody_design/testset/0217/full -o /home/kechen/antibody_design/testset/0217/processed_full --mode imgt_H3
 
-# pep-protein
-# python pocket_parsing.py -i ../dataset/sabdab/Ab-protein/split_imgt_clean_fixed_fv -o ../dataset/processed_finetune/Ab_protein_fv --mode imgt_filename --ligand_crop_threshold 8.0
 def parse_range(s:str) -> dict:
     """
     Input Example: "H.5-7,10_L.59-61,28,90", 

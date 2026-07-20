@@ -20,6 +20,7 @@ outputs/
 **/lightning_logs/
 **/inference_outputs/
 .hydra
+gitpush.md
 processed_scope/
 processed_pdb/
 weights/

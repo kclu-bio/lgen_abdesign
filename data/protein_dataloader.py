@@ -100,6 +100,7 @@ class Collator:
 
         B, N, _ = trans_1.shape
         device = trans_1.device
+        # select a random k for each batch within the specified range
         k = torch.randint(k_range[0], k_range[1] + 1, (1,)).item()
 
         # 1. Handle cases with a ligand: compute ligand centers (B, 3)
